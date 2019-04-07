@@ -1,2 +1,2 @@
 # WCContacts
-A WeChat Contacts toy simulation application
+A WeChat Contacts toy simulation application using Django
