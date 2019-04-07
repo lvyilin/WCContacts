@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+<head>
+    <title>{% block title %}{% endblock %}</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="{% static "bootstrap.css" %}" rel="stylesheet">
+    <link href="{% static "open-iconic-bootstrap.css" %}" rel="stylesheet">
+    <style>
+        body {
+            margin-bottom: 60px; /* Margin bottom by footer height */
+        }
+
+        .footer {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 60px; /* Set the fixed height of the footer here */
+            line-height: 60px; /* Vertically center the text there */
+            background-color: #f5f5f5;
+        }
+    </style>
+    {% block style %}{% endblock %}
+</head>
+
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark navbar-fixed-top">
+    <div class="container">
+        <a class="navbar-brand" href="#">
+            微信
+        </a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive"
+                aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarResponsive">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <input class="form-control mr-sm-2" placeholder="搜索" id="search-input">
+                </li>
+                <li class="nav-item">
+                    <button type="button" class="btn btn-dark" onclick="search();return false">
+                        <span class="oi oi-magnifying-glass oi-align-right" aria-hidden="true"></span>
+                    </button>
+                </li>
+                <li class="nav-item active">
+                    <div class="dropdown">
+                        <button type="button" class="btn btn-dark" data-toggle="dropdown"
+                                aria-haspopup="true" aria-expanded="false" id="dropdownMenuButton">
+                            <span class="oi oi-plus oi-align-right" aria-hidden="true" id="add"></span>
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#addGroupModal">发起群聊</a>
+                            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#addFriendModal">添加好友</a>
+                            <a class="dropdown-item" href="#" data-toggle="modal"
+                               data-target="#addOfficialAccountModal">添加公众号</a>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+</nav>
+<div class="modal fade" id="addFriendModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel0"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">添加朋友</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="addFriendForm">
+                    {% csrf_token %}
+                    {{ form }}
+                    <div class="form-group">
+                        <label for="wechat_id" class="col-form-label">请输入微信号:</label>
+                        <input type="text" class="form-control" name="wechat_id">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="addFriend();">提交</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="addOfficialAccountModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel1"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">添加公众号</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="addOAForm">
+                    {% csrf_token %}
+                    {{ form }}
+                    <div class="form-group">
+                        <label for="wechat_id" class="col-form-label">请输入公众号:</label>
+                        <input type="text" class="form-control" name="oa_name">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="addOA();">提交</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade bd-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel"
+     aria-hidden="true" id="searchModal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">搜索</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="app-search">
+                <ul class="list-group">
+                    <li class="list-group-item list-group-item-secondary">联系人</li>
+                </ul>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item"  v-for="item in contacts">
+                        {% verbatim %} {{ item.name }} {% endverbatim %}
+                        <small class="text-muted font-italic">微信号: {% verbatim %} {{ item.wechat_id }}{% endverbatim %}</small>
+                        <small class="text-muted font-italic" v-if="item.alias">昵称: {% verbatim %} {{ item.alias }}{% endverbatim %}</small>
+                    </li>
+                </ul>
+                <ul class="list-group">
+                    <li class="list-group-item list-group-item-secondary">群组</li>
+                    <li class="list-group-item"  v-for="item in groups">
+                        {% verbatim %} {{ item.name }} {% endverbatim %}
+                    </li>
+                </ul>
+                <ul class="list-group">
+                    <li class="list-group-item list-group-item-secondary">公众号</li>
+                    <li class="list-group-item"  v-for="item in officialAccounts">
+                        {% verbatim %} {{ item.name }} {% endverbatim %}
+                    </li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                {#                <button type="button" class="btn btn-primary">Save changes</button>#}
+            </div>
+        </div>
+    </div>
+</div>
+{% block content %}{% endblock %}
+<footer class="footer">
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                {#                <img src="{% block wecaht_active %}{% static "wechat.svg" %}{% endblock %}" alt=""#}
+                {#                     style="width: 30px;height: 30px">#}
+                <a class="btn btn-light">
+                    <img src="{% block wecaht_active %}{% static "wechat.svg" %}{% endblock %}" alt=""
+                         style="width: 30px;height: 30px"> 微信
+                </a>
+            </div>
+            <div class="col">
+                <a class="btn btn-light">
+                    <img src="{% block contact_active %}{% static "contact.svg" %}{% endblock %}" alt=""
+                         style="width: 30px;height: 30px">通讯录
+                </a>
+            </div>
+            <div class="col">
+                <a class="btn btn-light">
+                    <img src="{% block explore_active %}{% static "explore.svg" %}{% endblock %}" alt=""
+                         style="width: 30px;height: 30px">发现
+                </a>
+            </div>
+            <div class="col">
+                <a id="profile" class="btn btn-light" href="profile/" onclick="return false;">
+                    <img src="{% block me_active %}{% static "me.svg" %}{% endblock %}" alt=""
+                         style="width: 25px;height: 25px">我
+                </a>
+
+            </div>
+        </div>
+    </div>
+
+</footer>
+{% if messages %}
+    {% for message in messages %}
+        <script>alert("{{ message }}")</script>
+    {% endfor %}
+{% endif %}
+
+<script src="{% static "jquery-3.3.1.min.js" %}"></script>
+<script src="{% static "popper.min.js" %}"></script>
+<script src="{% static "bootstrap.js" %}"></script>
+<script src="{% static "vue.js" %}"></script>
+<script>
+    $(function () {
+        $('[data-toggle="tooltip"]').tooltip();
+        $('[data-toggle="popover"]').popover()
+
+    });
+
+    function addFriend() {
+        $.post("add/", $('#addFriendForm').serialize(), function (data) {
+            alert(data['msg']);
+            location.reload()
+        }, 'json');
+    }
+
+    function addOA() {
+        $.post("addOA/", $('#addOAForm').serialize(), function (data) {
+            alert(data['msg']);
+            location.reload()
+        }, 'json');
+    }
+
+    function search() {
+        var keyword = $("#search-input").val();
+        if (keyword !== "") {
+            $.post("search/", JSON.stringify({
+                keyword: keyword,
+            }), function (data) {
+                var app = new Vue({
+                    el: '#app-search',
+                    data: {
+                        contacts: data.contacts,
+                        groups: data.groups,
+                        officialAccounts: data.officialAccounts
+                    }
+                });
+                $('#searchModal').modal('show');
+                {#alert(JSON.stringify(data))#}
+            }, 'json');
+        }
+    }
+</script>
+{% block script %}{% endblock %}
+
+</body>
+</html>

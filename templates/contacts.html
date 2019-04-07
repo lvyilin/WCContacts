@@ -1,0 +1,563 @@
+{% extends "base.html" %}
+{% block title %}Contacts{% endblock %}
+{% load static %}
+{% block contact_active %}{% static "contact-active.svg" %}{% endblock %}
+{% block style %}
+    <link href="{% static "contacts.css" %}" rel="stylesheet">
+{% endblock %}
+{% block content %}
+    <div class="container">
+        <nav id="sidebar">
+            <div id="dismiss" class="dismiss">
+                <i class="oi oi-arrow-right"></i>
+            </div>
+
+            <div id="sidebar-contacts">
+                <div id="sidebar-header" class="sidebar-header row">
+                    <div class="col-sm-4">
+                        {#                    {% if item.has_avatar %}#}
+                        {#                        <img src="avatar/{{ item.user.wechat_id }}.jpg" alt="avatar"#}
+                        {#                             style="width: 100px;height: 100px">#}
+                        {#                    {% else %}#}
+                        <img src="{% static 'avatar.png' %}" alt="avatar" class="img-thumbnail"
+                             style="width: 100px;height: 100px">
+                        {#                    {% endif %}#}
+                    </div>
+                    <div class="col-sm-8">
+                        <h3 id="contact-name"></h3>
+                        <h5 id="contact-wechat-id" class="sidebar-header-text"></h5>
+                        <h5 id="contact-alias" class="sidebar-header-text"></h5></div>
+                </div>
+                <ul class="list-unstyled components">
+                    <li><a href="#" onclick="open_sidebar_ud();return false;">设置备注和标签</a></li>
+                </ul>
+                <table class="table table-hover table-borderless">
+                    <tbody>
+                    <tr>
+                        <td style="width: 30%">地区</td>
+                        <td id="contact-region" class="text-muted"></td>
+                    </tr>
+                    <tr>
+                        <td style="width: 30%">标签</td>
+                        <td id="contact-tag" class="text-muted"></td>
+                    </tr>
+                    <tr>
+                        <td style="width: 30%">描述</td>
+                        <td id="contact-description" class="text-muted"></td>
+                    </tr>
+                    <tr>
+                        <td style="width: 30%">电话号码</td>
+                        <td id="contact-mobile" class="text-muted"></td>
+                    </tr>
+
+                    <tr>
+                        <td style="width: 30%">个性签名</td>
+                        <td id="contact-whats_up" class="text-muted"></td>
+                    </tr>
+                    <tr>
+                        <td style="width: 30%">来源</td>
+                        <td id="contact-source" class="text-muted"></td>
+                    </tr>
+
+                    </tbody>
+                </table>
+                <ul class="list-unstyled components">
+                    <li class="list-group-item-danger"><a href="#" data-toggle="modal"
+                                                          data-target="#deleteConfirmModal">删除联系人</a>
+                    </li>
+                </ul>
+            </div>
+            <div id="sidebar-profile">
+                <div id="sidebar-header" class="sidebar-header row">
+                    <div class="col-sm-4">
+                        <img src="{% static 'avatar.png' %}" alt="avatar" class="img-thumbnail"
+                             style="width: 100px;height: 100px">
+                    </div>
+                    <div class="col-sm-8">
+                        <h3>个人信息</h3>
+                    </div>
+
+                </div>
+                <table class="table table-hover table-borderless">
+                    <tbody>
+                    <tr>
+                        <td style="width: 30%">昵称</td>
+                        <td class="text-muted">{{ profile.name }}</td>
+                    </tr>
+                    <tr>
+                        <td style="width: 30%">微信号</td>
+                        <td class="text-muted">{{ profile.wechat_id }}</td>
+                    </tr>
+                    <tr>
+                        <td style="width: 30%">地区</td>
+                        <td class="text-muted">{{ profile.region }}</td>
+                    </tr>
+                    <tr>
+                        <td style="width: 30%">个性签名</td>
+                        <td class="text-muted">{{ profile.whats_up }}</td>
+                    </tr>
+
+                    </tbody>
+                </table>
+                <ul class="list-unstyled components">
+                    <li class="list-group-item-info"><a href="#" data-toggle="modal"
+                                                        data-target="#changePasswordModal">修改密码</a>
+                    </li>
+                </ul>
+                <ul class="list-unstyled components">
+                    <li class="list-group-item-info"><a href="#" data-toggle="modal"
+                                                        data-target="#changeProfileModal">修改资料</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <nav id="sidebar-ud">
+            <div id="dismiss-ud" class="dismiss">
+                <i class="oi oi-arrow-right"></i>
+            </div>
+            <div id="sidebar-ud-header" class="sidebar-header">
+                <h4>备注信息</h4>
+            </div>
+            <div class="container">
+                <form id="update-contact" method="post">
+                    {% csrf_token %}
+                    {{ form }}
+                    <div class="form-group">
+                        <label for="alias">备注名</label>
+                        <input type="text" class="form-control" id="aliasInput" name="alias" placeholder="输入备注名">
+                    </div>
+                    <div class="form-group">
+                        <label for="tag">标签</label>
+                        <input type="text" class="form-control" id="tagInput" name="tag" placeholder="添加标签对联系人进行分类">
+                    </div>
+                    <div class="form-group">
+                        <label for="mobile">电话号码</label>
+                        <input type="tel" class="form-control" id="mobileInput" name="mobile" placeholder="添加电话号码">
+                    </div>
+                    <div class="form-group">
+                        <label for="description">描述</label>
+                        <textarea class="form-control" id="descriptionInput" name="description" rows="3"
+                                  placeholder="添加更多备注信息"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-secondary" onclick="update_contact();return false;">提交</button>
+                </form>
+            </div>
+        </nav>
+        <div id="content" class="container">
+            <table class="table table-hover">
+                <tbody>
+                <tr>
+                    <td style="width: 8%"><img src="{% static 'oa_avatar.png' %}" alt="avatar" class="img-thumbnail"
+                                               style="width: 40px;height: 40px"></td>
+                    <td><a href="#" data-toggle="modal" data-target="#addFriendModal">新的朋友</a></td>
+                </tr>
+                <tr>
+                    <td style="width: 8%"><img src="{% static 'oa_avatar.png' %}" alt="avatar" class="img-thumbnail"
+                                               style="width: 40px;height: 40px"></td>
+                    <td><a href="#" data-toggle="modal" data-target="#groupModal">群聊</a></td>
+                </tr>
+                <tr>
+                    <td style="width: 8%"><img src="{% static 'oa_avatar.png' %}" alt="avatar" class="img-thumbnail"
+                                               style="width: 40px;height: 40px"></td>
+                    <td><a href="#" data-toggle="modal" data-target="#oaModal">公众号</a></td>
+                </tr>
+                {% for item in contacts %}
+                    <tr>
+                        <td style="width: 8%">
+                            {% if item.has_avatar %}
+                                <img src="avatar/{{ item.user.wechat_id }}.jpg" alt="avatar"
+                                     style="width: 40px;height: 40px">
+                            {% else %}
+                                <img src="{% static 'avatar.png' %}" alt="avatar" class="img-thumbnail"
+                                     style="width: 40px;height: 40px">
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ item.user.wechat_id }}"
+                               onclick="get_detail(this.getAttribute('href'));return false;">
+                                {% if item.alias is None %}
+                                    {{ item.user.name }}
+                                {% else %}
+                                    {{ item.alias }}
+                                {% endif %}
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="overlay"></div>
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" role="dialog"
+         aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">删除联系人</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    确认将联系人删除?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-outline-danger" onclick="delete_contact();">删除</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="changePasswordModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel1"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">修改密码</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="changePasswordForm">
+                        {% csrf_token %}
+                        {{ form }}
+                        <div class="form-group">
+                            <label for="wechat_id" class="col-form-label">微信号:</label>
+                            <input type="text" class="form-control" name="wechat_id">
+                        </div>
+                        <div class="form-group">
+                            <label for="old_password" class="col-form-label">旧密码:</label>
+                            <input type="password" class="form-control" name="password">
+                        </div>
+                        <div class="form-group">
+                            <label for="new_password" class="col-form-label">新密码:</label>
+                            <input type="password" class="form-control" name="new_password">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="change_password();">提交</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="changeProfileModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel2"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel2">修改资料</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="changeProfileForm">
+                        {% csrf_token %}
+                        {{ form }}
+                        <div class="form-group">
+                            <label for="name" class="col-form-label">昵称:</label>
+                            <input type="text" class="form-control" name="name" value="{{ profile.name }}">
+                        </div>
+                        <div class="form-group">
+                            <label for="gender" class="col-form-label">性别</label>
+                            <input type="text" class="form-control" name="gender" value="{{ profile.gender }}">
+                        </div>
+                        <div class="form-group">
+                            <label for="region" class="col-form-label">地区:</label>
+                            <input type="text" class="form-control" name="region" value="{{ profile.region }}">
+                        </div>
+                        <div class="form-group">
+                            <label for="whats_up" class="col-form-label">个性签名:</label>
+                            <input type="text" class="form-control" name="whats_up" value="{{ profile.whats_up }}">
+                        </div>
+                        <div class="form-group">
+                            <label for="phone" class="col-form-label">手机:</label>
+                            <input type="text" class="form-control" name="phone" value="{{ profile.phone }}">
+                        </div>
+                        <div class="form-group">
+                            <label for="email" class="col-form-label">邮箱:</label>
+                            <input type="email" class="form-control" name="email" value="{{ profile.email }}">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="change_profile();">提交</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="oaModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">公众号</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="list-group">
+                    {% for item in oa %}
+                        <button type="button" class="list-group-item list-group-item-action" data-container="body"
+                                data-toggle="popover" title={{ item.name }}
+                                        data-placement="right"
+                                data-content="{{ item.description }}">{{ item.name }}</button>
+                    {% endfor %}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="addGroupModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">发起群聊</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="addGroupForm">
+                        {% csrf_token %}
+                        {{ form }}
+                        {% for item in contacts %}
+                            <div class="form-check">
+                                <input class="form-check-input contact-check" type="checkbox"
+                                       value="{{ item.user.wechat_id }}">
+                                <label class="form-check-label contact-check" for="defaultCheck1">
+                                    {{ item.user.wechat_id }}
+                                </label>
+                            </div>
+                        {% endfor %}
+                        <br>
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text" id="basic-addon3">群聊名称</span>
+                            </div>
+                            <input type="text" class="form-control" id="group-name" aria-describedby="basic-addon3">
+                        </div>
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">群公告</span>
+                            </div>
+                            <textarea class="form-control" aria-label="notice" id="group-notice"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="addGroup();">确定</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade bd-example-modal-lg" id="groupModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">群聊</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="row">
+                    <div class="col-4">
+                        <div class="list-group" id="list-tab" role="tablist">
+                            {% for item in groups %}
+                                <a class="list-group-item list-group-item-action" id="list-{{ forloop.counter }}-list"
+                                   data-toggle="list" href="#list-{{ forloop.counter }}" role="tab"
+                                   aria-controls="{{ forloop.counter }}">{{ item.name }}
+                                    <button type="button" class="close" aria-label="Close" onclick="deleteGroup('{{ item.name }}')"><span aria-hidden="true">&times;</span></button></a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="col-8">
+                        <div class="tab-content" id="nav-tabContent">
+                            {% for item in groups %}
+                                <div class="tab-pane fade show" id="list-{{ forloop.counter }}" role="tabpanel"
+                                     aria-labelledby="list-{{ forloop.counter }}-list">
+                                    <div class="text-md-center text-muted">群公告：{{ item.notice }}</div>
+                                    <div class="d-flex p-2 bd-highlight">
+                                        {% for mem in item.members %}
+                                            <div class="border">
+                                                <a href="#" onclick="$('#groupModal').modal('hide');get_detail('{{ mem }}');return false;">
+                                                    <img class="img-responsive size"
+                                                         style=" display: block; margin-left: auto; margin-right: auto; border:5px solid #f7f7f9;"
+                                                         src="{% static 'avatar.png' %}">
+                                                    <div class="figure-caption text-md-center">{{ mem }}</div>
+                                                </a>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block script %}
+    <script type="text/javascript">
+        window.wechatId = "{{ profile.wechat_id }}";
+        var currentContact = "";
+
+        $(document).ready(function () {
+            $('#dismiss, .overlay').on('click', function () {
+                $('#sidebar').removeClass('active');
+                $('.overlay').removeClass('active');
+                $('#sidebar-ud').removeClass('active');
+
+            });
+            $('#dismiss-ud').on('click', function () {
+                $('#sidebar-ud').removeClass('active');
+            });
+
+            $("#profile").on("click", function () {
+                $("#sidebar-contacts").hide();
+                $("#sidebar-profile").show();
+                $('#sidebar').addClass('active');
+                $('.overlay').addClass('active');
+                $('.collapse.in').toggleClass('in');
+                $('a[aria-expanded=true]').attr('aria-expanded', 'false');
+            });
+        });
+
+        function update_contact() {
+            $.post(currentContact + "/update/", $('#update-contact').serialize(), function (data) {
+                alert(data['msg']);
+            }, 'json');
+            location.reload()
+        }
+
+        function delete_contact() {
+            $.get(currentContact + "/delete/", function (data) {
+                alert(data['msg']);
+            }, 'json');
+            location.reload()
+        }
+
+
+        function open_sidebar_ud() {
+            $('#sidebar-ud').addClass('active');
+        }
+
+        function get_detail(wechat_id) {
+            if (wechat_id === wechatId) {
+                $("#profile").click();
+                return;
+            }
+            $("#sidebar-contacts").show();
+            $("#sidebar-profile").hide();
+            $.get(wechat_id, function (data) {
+                currentContact = data.contact.user.wechat_id;
+                $("#contact-wechat-id").text("微信号: " + data.contact.user.wechat_id);
+
+                var name = "";
+                if (data.contact.alias == null) {
+                    name = data.contact.user.name;
+                    $("#contact-alias").text("")
+                } else {
+                    name = data.contact.alias;
+                    $("#contact-alias").text("昵称: " + data.contact.user.name);
+                    $("#aliasInput").val(data.contact.alias)
+                }
+                $("#contact-name").text(name);
+                $("#contact-region").text(data.contact.user.region);
+                $("#contact-tag").text(data.contact.tag);
+                $("#tagInput").val(data.contact.tag);
+                $("#contact-description").text(data.contact.description);
+                $("#descriptionInput").val(data.contact.description);
+                $("#contact-mobile").text(data.contact.mobile);
+                $("#mobileInput").val(data.contact.mobile);
+                $("#contact-whats_up").text(data.contact.user.whats_up);
+                $("#contact-source").text(data.contact.source);
+
+                $('#sidebar').addClass('active');
+                $('.overlay').addClass('active');
+                $('.collapse.in').toggleClass('in');
+                $('a[aria-expanded=true]').attr('aria-expanded', 'false');
+            }, 'json');
+        }
+
+        function change_password() {
+            $.post("/change_password/", $('#changePasswordForm').serialize(), function (data) {
+                alert(data['msg']);
+            }, 'json');
+            location.reload()
+        }
+
+        function change_profile() {
+            $.post("update_profile/", $('#changeProfileForm').serialize(), function (data) {
+                alert(data['msg']);
+            }, 'json');
+            location.reload()
+        }
+
+        $.ajaxSetup({
+            beforeSend: function (xhr, settings) {
+                function getCookie(name) {
+                    var cookieValue = null;
+                    if (document.cookie && document.cookie != '') {
+                        var cookies = document.cookie.split(';');
+                        for (var i = 0; i < cookies.length; i++) {
+                            var cookie = jQuery.trim(cookies[i]);
+                            // Does this cookie string begin with the name we want?
+                            if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                break;
+                            }
+                        }
+                    }
+                    return cookieValue;
+                }
+
+                if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+                    // Only send the token to relative URLs i.e. locally.
+                    xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+                }
+            }
+        });
+
+        function addGroup() {
+            var wechat_id_list = [];
+            $('input:checkbox.contact-check').each(function () {
+                var sThisVal = (this.checked ? $(this).val() : "");
+                if (sThisVal !== "") wechat_id_list.push(sThisVal);
+            });
+            var group_name = $("#group-name").val();
+            var group_notice = $("#group-notice").val();
+            $.post("add_group/", JSON.stringify({
+                list: wechat_id_list,
+                name: group_name,
+                notice: group_notice
+            }), function (data) {
+                alert(data['msg']);
+            }, 'json');
+            location.reload()
+        }
+         function deleteGroup(groupName) {
+            $.post("delete_group/", JSON.stringify({
+                name: groupName,
+            }), function (data) {
+                alert(data['msg']);
+            }, 'json');
+            location.reload()
+        }
+    </script>
+{% endblock %}

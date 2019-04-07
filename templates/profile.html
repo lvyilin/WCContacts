@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}{{ contact.user.wechat_id }}{% endblock %}
+{% load static %}
+{% block me_active %}{% static "me-active.svg" %}{% endblock %}
+
+{% block style %}
+    <style type="text/css">
+        body {
+            font-family: "Roboto", Helvetica, Arial, sans-serif;
+            font-weight: 100;
+            font-size: 12px;
+            line-height: 30px;
+            color: #777;
+            background: #8dc26f;
+        }
+
+        #contact {
+            background: #F9F9F9;
+            box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.2), 0 5px 5px 0 rgba(0, 0, 0, 0.24);
+            position: relative;
+            z-index: 1;
+            max-width: 360px;
+            margin: 0 auto 100px;
+            padding: 45px;
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        #contact h3 {
+            display: block;
+            font-size: 30px;
+            font-weight: 300;
+            margin-bottom: 10px;
+            color: black;
+        }
+
+        #contact h4 {
+            margin: 5px 0 15px;
+            display: block;
+            font-size: 13px;
+            font-weight: 400;
+        }
+
+        #contact textarea {
+            height: 100px;
+            max-width: 100%;
+            resize: none;
+        }
+
+        #contact input:focus,
+        #contact textarea:focus {
+            outline: 0;
+            border: 1px solid #aaa;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <main role="main" class="container">
+
+        <div class="container" id="contact">
+            {% if contact.wechat_id is None %}
+                <h4>微信号: {{ contact.user.wechat_id }}</h4>
+            {% endif %}
+            {% if contact.name is None %}
+                <h4>昵称: {{ contact.user.name }}</h4>
+            {% endif %}
+            {% if contact.user.region is not None %}
+                <h4>地区: {{ contact.user.region }}</h4>
+            {% endif %}
+            {% if contact.user.whats_up is not None %}
+                <h4>个性签名: {{ contact.user.whats_up }}</h4>
+            {% endif %}
+            <button class="btn btn-link" id="change_profile">修改资料</button>
+            <button class="btn btn-link" id="change_pw">修改密码</button>
+            <form id="change_pw_form">
+                {% csrf_token %}
+                <input type="hidden" name="wechat_id" id="pw_id">
+                <input type="hidden" name="password" id="pw_pw">
+                <input type="hidden" name="new_password" id="pw_npw">
+                {{ form }}
+            </form>
+            <form id="change_profile_form">
+                {% csrf_token %}
+                <input type="hidden" name="name" id="pf_name">
+                <input type="hidden" name="gender" id="pf_gender">
+                <input type="hidden" name="region" id="pf_region">
+                <input type="hidden" name="whats_up" id="pf_wu">
+                <input type="hidden" name="phone" id="pf_phone">
+                <input type="hidden" name="email" id="pf_email">
+                {{ form }}
+            </form>
+        </div>
+    </main>
+
+    <script>
+        $('#add').click(function () {
+            var wechat_id;
+            wechat_id = prompt("请输入微信号");
+            $('#chagne_pw_form').val(wechat_id);
+            $.post("add/", $('#add_form').serialize(), function (data) {
+                alert(data['msg'])
+                location.reload()
+            }, 'json');
+        });
+        $('#change_pw').click(function () {
+            var wechat_id, password, new_password;
+            wechat_id = prompt("请输入微信号");
+            password = prompt("请输入旧密码");
+            new_password = prompt("请输入新密码");
+            $('#pw_id').val(wechat_id);
+            $('#pw_pw').val(password);
+            $('#pw_npw').val(new_password);
+            $.post("/change_password/", $('#change_pw_form').serialize(), function (data) {
+                alert(data['msg']);
+                location.reload();
+            }, 'json');
+        });
+
+    </script>
+{% endblock %}

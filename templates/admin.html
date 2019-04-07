@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+<head>
+    <title>微信 - 管理员</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="{% static "bootstrap.min.css" %}" rel="stylesheet">
+    <link href="{% static "metisMenu.min.css" %}" rel="stylesheet">
+    <link href="{% static "sb-admin-2.min.css" %}" rel="stylesheet">
+    <link href="{% static "morris.css" %}" rel="stylesheet">
+</head>
+<body>
+
+<div id="wrapper">
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand">微信 - 管理员</a>
+        </div>
+
+        {#        <div class="navbar-default sidebar" role="navigation">#}
+        {#            <div class="sidebar-nav navbar-collapse">#}
+        {#                <ul class="nav" id="side-menu">#}
+        {#                    <li>#}
+        {#                        <a href="#" id="nav1"> 用户管理</a>#}
+        {#                    </li>#}
+        {#                </ul>#}
+        {#            </div>#}
+        {#        </div>#}
+    </nav>
+
+    <div class="page-wrapper container">
+        <div class="row">
+            <div class="col-lg-12">
+                <h1 class="page-header">微信管理</h1>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <i class="fa fa-bar-chart-o fa-fw"></i>用户管理
+                    </div>
+                    <div class="panel-body">
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-hover table-striped">
+                                        <thead>
+                                        <tr>
+                                            <th>微信号</th>
+                                            <th>昵称</th>
+                                            <th>是否封禁</th>
+                                            <th>是否管理员</th>
+                                        </tr>
+                                        </thead>
+                                        <form>
+                                            {% csrf_token %}
+                                            {{ form }}
+                                            <tbody id="tagTable">
+                                            {% for user in users %}
+                                                <tr>
+                                                    <td>{{ user.wechat_id }}</td>
+                                                    <td>{{ user.name }}</td>
+                                                    <td>
+                                                        <input type="checkbox" class="banned-checkbox"
+                                                               value="{{ user.wechat_id }}"
+                                                               {% if user.banned %}checked{% endif %}>
+                                                    </td>
+                                                    <td>
+                                                        <input type="checkbox" class="admin-checkbox"
+                                                               value="{{ user.wechat_id }}"
+                                                               {% if user.admin %}checked{% endif %}>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                            </tbody>
+                                        </form>
+                                    </table>
+                                    <button class="btn btn-primary" id="btnSubmit">提交
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <i class="fa fa-bar-chart-o fa-fw"></i>公众号管理
+                    </div>
+                    <div class="panel-body">
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div class="input-group mb-3">
+                                    <div class="input-group-prepend">
+                                            <span class="input-group-text"
+                                                  id="basic-addon3">公众号名：</span>
+                                    </div>
+                                    <input type="text" class="form-control" id="oa-name"
+                                           aria-describedby="basic-addon3">
+                                </div>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">公众号描述</span>
+                                    </div>
+                                    <textarea class="form-control" aria-label="With textarea" id="oa-desc"></textarea>
+                                </div>
+                                <br>
+                                <button class="btn btn-primary" id="btnOASubmit">添加
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</div>
+
+
+<script src="{% static "jquery-3.3.1.min.js" %}"></script>
+<script src="{% static "raphael.min.js" %}"></script>
+<script src="{% static "metisMenu.min.js" %}"></script>
+<script src="{% static "sb-admin-2.js" %}"></script>
+<script src="{% static "bootstrap3.min.js" %}"></script>
+<script>
+    $.ajaxSetup({
+        beforeSend: function (xhr, settings) {
+            function getCookie(name) {
+                var cookieValue = null;
+                if (document.cookie && document.cookie != '') {
+                    var cookies = document.cookie.split(';');
+                    for (var i = 0; i < cookies.length; i++) {
+                        var cookie = jQuery.trim(cookies[i]);
+                        // Does this cookie string begin with the name we want?
+                        if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+
+            if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+                // Only send the token to relative URLs i.e. locally.
+                xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+            }
+        }
+    });
+    $("#btnSubmit").click(function (event) {
+        event.preventDefault();
+        var results = [];
+        var bannedCheckboxs = $(".banned-checkbox");
+        for (var i = 0; i < bannedCheckboxs.length; ++i) {
+            results.push({name: bannedCheckboxs[i].value, bannedChecked: bannedCheckboxs[i].checked})
+        }
+        var adminCheckboxs = $(".admin-checkbox");
+        for (var i = 0; i < adminCheckboxs.length; ++i) {
+            results[i]['adminChecked'] = adminCheckboxs[i].checked;
+        }
+        $.post("admin_op/", JSON.stringify({
+            results: results,
+        }), function (data) {
+            alert(data['msg']);
+        }, 'json');
+        location.reload()
+    });
+
+    $("#btnOASubmit").click(function (event) {
+        event.preventDefault();
+        var oa_name = $('#oa-name').val();
+        var oa_desc = $('#oa-desc').val();
+        $.post("admin_oa/", JSON.stringify({
+            oa_name: oa_name,
+            oa_desc:oa_desc
+        }), function (data) {
+            alert(data['msg']);
+        }, 'json');
+        location.reload()
+    });
+</script>
+</body>
+</html>

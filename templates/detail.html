@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}{{ contact.user.wechat_id }}{% endblock %}
+{% load static %}
+{% block style %}
+    <style type="text/css">
+        body {
+            font-family: "Roboto", Helvetica, Arial, sans-serif;
+            font-weight: 100;
+            font-size: 12px;
+            line-height: 30px;
+            color: #777;
+            background: #8dc26f;
+        }
+
+        #contact {
+            background: #F9F9F9;
+            box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.2), 0 5px 5px 0 rgba(0, 0, 0, 0.24);
+            position: relative;
+            z-index: 1;
+            max-width: 360px;
+            margin: 0 auto 100px;
+            padding: 45px;
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        #contact h3 {
+            display: block;
+            font-size: 30px;
+            font-weight: 300;
+            margin-bottom: 10px;
+            color: black;
+        }
+
+        #contact h4 {
+            margin: 5px 0 15px;
+            display: block;
+            font-size: 13px;
+            font-weight: 400;
+        }
+
+        #contact textarea {
+            height: 100px;
+            max-width: 100%;
+            resize: none;
+        }
+
+        #contact input:focus,
+        #contact textarea:focus {
+            outline: 0;
+            border: 1px solid #aaa;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <main role="main" class="container">
+
+        <div id="contact" class="container">
+            {% if contact.alias is None %}
+                <h3>{{ contact.user.name }}</h3>
+            {% else %}
+                <h3>{{ contact.alias }}</h3>
+            {% endif %}
+            <h4>微信号: {{ contact.user.wechat_id }}</h4>
+            {% if contact.alias is not None %}
+                <h4>昵称: {{ contact.user.name }}</h4>
+            {% endif %}
+            {% if contact.user.region is not None %}
+                <h4>地区: {{ contact.user.region }}</h4>
+            {% endif %}
+            {% if contact.user.whats_up is not None %}
+                <h4>个性签名: {{ contact.user.whats_up }}</h4>
+            {% endif %}
+            {% if contact.user.mobile is not None %}
+                <h4>电话号码: {{ contact.user.mobile }}</h4>
+            {% endif %}
+            {% if contact.user.description is not None %}
+                <h4>描述: {{ contact.user.description }}</h4>
+            {% endif %}
+            {% if contact.user.tag is not None %}
+                <h4>标签: {{ contact.user.tag }}</h4>
+            {% endif %}
+            {% if contact.user.source is not None %}
+                <h4>来源: {{ contact.user.source }}</h4>
+            {% endif %}
+            <form method="post" action="update/">
+                {% csrf_token %}
+                {{ form }}
+                <input type="text" name="alias" placeholder="备注名"/>
+                <input type="hidden" name="tag"/>
+                <input type="hidden" name="mobile"/>
+                <input type="hidden" name="description"/>
+                <input type="hidden" name="source"/>
+                <button>保存</button>
+            </form>
+            <h4><a href="delete/">删除联系人</a></h4>
+        </div>
+    </main>
+{% endblock %}
